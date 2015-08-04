@@ -205,7 +205,8 @@ public class JCMTimeSliderUtils {
         struct Static {
             static let instance: NSDateFormatter = {
                 let dateFormatter = NSDateFormatter()
-                dateFormatter.dateFormat = "MMM-yy"
+                //dateFormatter.dateFormat = "MMM-yy"
+                dateFormatter.dateFormat = "MMM-dd"
                 return dateFormatter
                 }()
         }
@@ -217,7 +218,7 @@ public class JCMTimeSliderUtils {
         struct Static {
             static let instance: NSDateFormatter = {
                 let dateFormatter = NSDateFormatter()
-                dateFormatter.dateFormat = kLocaleLongDateFormatSwift
+                dateFormatter.dateFormat = kLocaleLayerIntervalDateFormatSwift
                 return dateFormatter
                 }()
         }

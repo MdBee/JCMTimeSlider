@@ -32,6 +32,7 @@ import QuartzCore
 // MARK: - JCMTimeSliderControl.swift
 
 let kLocaleLongDateFormatSwift              = NSLocalizedString("MM/dd/yy",comment: "Long date format : MM/dd/yy in english")
+let kLocaleLayerIntervalDateFormatSwift     = NSLocalizedString("HH:mm:ss",comment: "Layer interval date format : HH:mm:ss in English")
 
 /**
 *  Defines a data point returned by JCMTimeSliderControlDataSource

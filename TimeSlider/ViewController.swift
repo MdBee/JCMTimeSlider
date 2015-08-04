@@ -29,97 +29,181 @@
 
 import UIKit
 
-class SampleData: JCMTimeSliderControlDataSource {
-    var data: Array<NSDate>?
+class LayerSliderData: JCMTimeSliderControlDataSource {
+  var data: Array<NSDate>?
+  
+  init(dataArray:[NSDate]) {
+    data = dataArray
+  }
+  
+  func numberOfDates() -> Int {
+    return data!.count
+  }
+  
+  var hasIcon: Bool = true
+  func dataPointAtIndex(index: Int) -> JCMTimeSliderControlDataPoint {
     
-    init(points:Int) {
-        let twoYearsAgo=NSDate(timeIntervalSinceNow: -2*365*24*60*60)
-        data = randomDatesFrom(twoYearsAgo, to: NSDate(timeIntervalSinceNow: 0), amount: points)
-    }
-    
-    private func randomDatesFrom(from: NSDate, to: NSDate, amount: Int = 25) -> Array<NSDate> {
-        var a = Array<NSDate>()
-        let diff = to.timeIntervalSinceDate(from)
-        for i in 1...amount {
-            let randomNumber = arc4random_uniform(UINT32_MAX)
-            let randomTimeInterval = diff * Double(randomNumber) / Double(UINT32_MAX)
-            a.append(NSDate(timeInterval: randomTimeInterval, sinceDate: from))
-        }
-        a.sort { (d1, d2) -> Bool in
-            return d1.compare(d2) == NSComparisonResult.OrderedAscending
-        }
-        return a
-    }
-    
-    func numberOfDates() -> Int {
-        return data!.count
-    }
-    
-    var hasIcon: Bool = false;
-    func dataPointAtIndex(index: Int) -> JCMTimeSliderControlDataPoint {
-        
-        // Assign approx. half fof the labels to have icons
-        if index % 2 == 0 {
-            hasIcon = true
-        } else {
-            hasIcon = false
-        }
-        return JCMTimeSliderControlDataPoint(date: data![index], hasIcon: hasIcon)
-    }
-}
+//    // Assign approx. half fof the labels to have icons
+//    if index % 2 == 0 {
+//      hasIcon = true
+//    } else {
+//      hasIcon = false
+//    }
+    return JCMTimeSliderControlDataPoint(date: data![index], hasIcon: hasIcon)
+  }
+  
+  
+  }
+
 
 class ViewController: UIViewController, JCMTimeSliderControlDelegate {
+  
+  @IBOutlet var timeControl1: JCMTimeSliderControl?
+  @IBOutlet var timeControl2: JCMTimeSliderControl?
+  @IBOutlet var timeControl3: JCMTimeSliderControl?
+  @IBOutlet var timeControl4: JCMTimeSliderControl?
+  
+//  var sample1 = SampleData(points: 4)
+//  var sample2 = SampleData(points: 12)
+//  var sample3 = SampleData(points: 100)
+//  var sample4 = SampleData(points: 800)
+  
+  var sample1:LayerSliderData?
+
+
+  
+  
+  
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
     
-    @IBOutlet var timeControl1: JCMTimeSliderControl?
-    @IBOutlet var timeControl2: JCMTimeSliderControl?
-    @IBOutlet var timeControl3: JCMTimeSliderControl?
-    @IBOutlet var timeControl4: JCMTimeSliderControl?
+    setupIterisLayerWithDataType("radar_with_metrad_plus")
+  }
+  
+  override func viewDidAppear(animated: Bool) {
+    super.viewDidAppear(animated)
+  }
+
+  
+  func populateTimeControls(dataArray:[NSDate]) {
+
+    sample1 = LayerSliderData(dataArray: dataArray)
     
-    var sample1 = SampleData(points: 4)
-    var sample2 = SampleData(points: 12)
-    var sample3 = SampleData(points: 100)
-    var sample4 = SampleData(points: 800)
+    println("sample1.data.count = \(sample1!.data!.count)")
     
+    timeControl1?.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.4)
+    timeControl1?.dataSource = sample1
+    timeControl1?.delegate = self
+    timeControl1?.tag = 1
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        timeControl1?.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.4)
-        timeControl1?.dataSource = sample1
-        timeControl1?.delegate = self
-        timeControl1?.tag = 1
+    timeControl2?.backgroundColor = UIColor.whiteColor().colorWithAlphaComponent(0.4)
+    timeControl2?.selectedTickColor = UIColor.blackColor()
+    timeControl2?.labelColor = UIColor.blackColor()
+    timeControl2?.inactiveTickColor = UIColor.blackColor().colorWithAlphaComponent(0.2)
+    timeControl2?.dataSource = sample1
+    timeControl2?.delegate = self
+    timeControl2?.tag = 2
+    
+    timeControl3?.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.4)
+    timeControl3?.dataSource = sample1
+    timeControl3?.delegate = self
+    timeControl3?.tag = 3
+    
+    timeControl4?.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.4)
+    timeControl4?.dataSource = sample1
+    timeControl4?.delegate = self
+    timeControl4?.tag = 4
+    
+  }
+  
+  override func didReceiveMemoryWarning() {
+    super.didReceiveMemoryWarning()
+    // Dispose of any resources that can be recreated.
+  }
+  
+  func hoveredOverDate(date: NSDate, index: Int, control: JCMTimeSliderControl) {
+    //println("Hovered over control: \(control.tag) -> Date: \(date), loc: \(index)")
+  }
+  
+  func selectedDate(date: NSDate, index: Int, control: JCMTimeSliderControl) {
+    //println("Selected control: \(control.tag) -> Date: \(date), loc: \(index)")
+  }
+  
+  
+  private func setupIterisLayerWithDataType(dataType:String) {
+    var tileURLs = [String]()
+    var timestamps = [NSDate]()
+    
+    let iteris = IterisAPI.sharedInstance
+    
+    let layerURL = iteris.layerURL(dataType, startDate:NSDate(), endDate:NSDate(), displayInterval:1200, displayRange:24)
+    let layerNSURL = NSURL(string:layerURL)
+    
+    NSURLConnection.sendAsynchronousRequest(NSURLRequest(URL:layerNSURL!), queue: NSOperationQueue()){
+      (response, data, error) -> Void in
+      if (error != nil) {
+        println("error = \(error)")
+      } else {
         
-        timeControl2?.backgroundColor = UIColor.whiteColor().colorWithAlphaComponent(0.4)
-        timeControl2?.selectedTickColor = UIColor.blackColor()
-        timeControl2?.labelColor = UIColor.blackColor()
-        timeControl2?.inactiveTickColor = UIColor.blackColor().colorWithAlphaComponent(0.2)
-        timeControl2?.dataSource = sample2
-        timeControl2?.delegate = self
-        timeControl2?.tag = 2
-        
-        timeControl3?.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.4)
-        timeControl3?.dataSource = sample3
-        timeControl3?.delegate = self
-        timeControl3?.tag = 3
-        
-        timeControl4?.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.4)
-        timeControl4?.dataSource = sample4
-        timeControl4?.delegate = self
-        timeControl4?.tag = 4
-        
+        var localError: NSError?
+        if let parsedObject = NSJSONSerialization.JSONObjectWithData(data!, options:NSJSONReadingOptions.MutableContainers, error:&localError) as? NSDictionary {
+          var display_intervals = parsedObject["display_intervals"] as! NSMutableArray
+          
+          for dict in display_intervals {
+            let keyPath = "layers.contigus." + "\(dataType)"
+            let tile_url = dict.valueForKeyPath("\(keyPath)" + ".tile_url") as! String
+            let valid_time = dict.valueForKeyPath("\(keyPath)" + ".valid_time") as! NSNumber
+            if (tile_url != "") {
+              tileURLs.insert(iteris.tileURLStringWithAuthParams(tile_url) as (String), atIndex:0)
+              if (valid_time != 0) {
+                let ts = NSDate(timeIntervalSince1970:valid_time.doubleValue)
+                timestamps.insert(ts, atIndex:0)
+              } else {
+                timestamps.insert(NSDate(timeIntervalSince1970: 0.0), atIndex:0)
+              }
+            }
+          }
+          
+          if (tileURLs.count > 0) {
+            
+            // duplicating the first tileJSONUrl & matching timestamp for display (and later removal) to help time slider
+            tileURLs.insert(tileURLs[0], atIndex:0)
+            timestamps.insert(timestamps[0], atIndex:0)
+            
+            //            println("tileURLs = \(tileURLs)")
+            println("timestamps = \(timestamps)")
+            
+                        dispatch_async(dispatch_get_main_queue()) {
+            self.populateTimeControls(timestamps)
+                        }
+            
+            //            var tileURLsString:String? = tileURLs.description
+            //            var timestampsString:String? = timestamps.description
+            //            tileURLsString = tileURLsString!.stringByTrimmingCharactersInSet(NSCharacterSet(charactersInString:"()"))
+            //            timestampsString = timestampsString!.stringByTrimmingCharactersInSet(NSCharacterSet(charactersInString:"()"))
+            //
+            //            // let currentZoom:Int? = Int(self.mapView!.zoom)
+            //            let currentZoom:Int? = 6
+            //
+            //            let currentZoomPlusOne:Int? = currentZoom!+1
+            //            var jsonString = "{\"tiles\": [" + "\(tileURLsString)"
+            //            jsonString += "], \"timestamps\": ["
+            //            jsonString += "\(timestampsString)"
+            //            jsonString += "], \"minzoom\":"
+            //            jsonString += "\(currentZoom)"
+            //            jsonString += ", \"maxzoom\": "
+            //            jsonString += "\(currentZoomPlusOne)"
+            //            jsonString += "}"
+            //            dispatch_async(dispatch_get_main_queue()) {
+            //              //self.enableSecondLayerWithJSONString(jsonString)
+            //              println("jsonString = \(jsonString)")
+            //            }
+          }
+        }
+      }
     }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    func hoveredOverDate(date: NSDate, index: Int, control: JCMTimeSliderControl) {
-        //println("Hovered over control: \(control.tag) -> Date: \(date), loc: \(index)")
-    }
-    
-    func selectedDate(date: NSDate, index: Int, control: JCMTimeSliderControl) {
-        //println("Selected control: \(control.tag) -> Date: \(date), loc: \(index)")
-    }
-    
+  }
+
 }
 
